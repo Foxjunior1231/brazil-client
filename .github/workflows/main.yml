@@ -1,0 +1,45 @@
+name: Compilar Brazil Client
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar Codigo Fonte
+      uses: actions/checkout@v4
+
+    - name: Extrair Projeto ZIP
+      run: |
+        unzip Brazil-Client.zip
+        mv *Client*/* . || true
+        mv *client*/* . || true
+
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        cache: 'gradle'
+
+    - name: Dar Permissao ao Gradle
+      run: chmod +x gradlew || chmod +x app/gradlew || true
+
+    - name: Compilar APK (Debug)
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          cd app && ./gradlew assembleDebug
+        fi
+
+    - name: Guardar Ficheiro APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: BrazilClient-APK
+        path: "**/build/outputs/apk/debug/*.apk"
+        
